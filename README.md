@@ -89,7 +89,7 @@ Save as `.json` and import to SillyTavern.
 
 ## More Tools
 
-Check out my [RP Enhancement Toolkit](https://docs.google.com/document/d/1CfWHATYyDH5HYw_7vFKtax-2fCiE-3hnmAGOtyJWTkM/edit?tab=t.0) for more SillyTavern utilities.
+Check out my [other tools](https://docs.google.com/document/d/1CfWHATYyDH5HYw_7vFKtax-2fCiE-3hnmAGOtyJWTkM/edit?tab=t.0) for more SillyTavern utilities.
 
 ---
 
