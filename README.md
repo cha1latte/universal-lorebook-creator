@@ -24,7 +24,7 @@ Best for: Local models, limited context, large worlds
 
 ## Quick Start
 
-1. Download: [`lorebook_creator_prompt.md`](lorebook_creator_prompt.md) or [`lorebook_creator_compact.md`](lorebook_creator_compact.md)
+1. Download standard or compact edition
 2. Upload to your AI (Claude, ChatGPT, etc.)
 3. Say: `"execute these instructions"` or `"make me a lorebook"`
 4. Pick a mode:
