@@ -159,6 +159,8 @@ Exclude:
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -193,6 +195,17 @@ Exclude:
 - 100 = Default
 - 200+ = Higher priority (major characters)
 - Lower = Less important
+
+**Timed Effects (Advanced):**
+- `delay: N` = Won't activate until N messages pass (default: 0)
+- `cooldown: N` = Can't reactivate for N messages after use (default: 0)
+- `sticky: N` = Stays active for N messages (default: 0)
+- `probability: X` = X% chance to activate on trigger (default: 100)
+
+**Common Uses:**
+- Single-event: `constant: true, delay: 10, cooldown: 9999` = Triggers once at message 10
+- Random event: `probability: 25` = 25% chance when keywords match
+- Persistent scene: `sticky: 8` = Stays active 8 messages after trigger
 
 ### COMPACT TEMPLATES
 
@@ -288,6 +301,8 @@ while serving the Guild.
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -316,7 +331,8 @@ For each entry, verify:
 3. **Never use constant: false with position: 4** - inconsistent
 4. **Never use selective: true without keysecondary values**
 5. **Always use preventRecursion: true for items/objects**
-6. **Always output ONLY valid JSON** - no explanatory text
+6. **Always set delay, cooldown, sticky to 0** unless specifically needed
+7. **Always output ONLY valid JSON** - no explanatory text
 
 ### OUTPUT FORMAT
 
