@@ -275,6 +275,8 @@ json{
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -322,7 +324,7 @@ json{
 - ❌ NEVER combine unrelated entities (location + character + item) into one entry
 
 ### Required Fields (ALL must be present)
-`uid`, `key`, `keysecondary`, `comment`, `content`, `constant`, `selective`, `selectiveLogic`, `addMemo`, `order`, `position`, `disable`, `probability`, `useProbability`, `depth`, `sticky`, `vectorized`, `ignoreBudget`, `excludeRecursion`, `preventRecursion`
+`uid`, `key`, `keysecondary`, `comment`, `content`, `constant`, `selective`, `selectiveLogic`, `addMemo`, `order`, `position`, `disable`, `probability`, `useProbability`, `depth`, `delay`, `cooldown`, `sticky`, `vectorized`, `ignoreBudget`, `excludeRecursion`, `preventRecursion`
 
 **Field Rules:**
 - `excludeRecursion`: ALWAYS set to `false` (prevents infinite loops)
@@ -332,7 +334,10 @@ json{
 - `depth`: ALWAYS set to `4` (standard context depth)
 - `addMemo`: ALWAYS set to `true`
 - `disable`: ALWAYS set to `false`
-- `probability`: ALWAYS set to `100`
+- `probability`: ALWAYS set to `100` (unless creating random events)
+- `delay`: ALWAYS set to `0` (unless delaying activation)
+- `cooldown`: ALWAYS set to `0` (unless preventing reactivation)
+- `sticky`: ALWAYS set to `0` (unless entry should persist)
 - `selectiveLogic`: ALWAYS set to `0` when not using secondary keys
 
 ### Keywords
@@ -418,6 +423,45 @@ ELSE
 - `sticky: 8, probability: 100` = Guaranteed presence for 8 messages
 - `sticky: 5, probability: 75` = 75% chance each message for 5 messages
 - Use lower probability with higher sticky for subtle persistence
+
+### Timed Effects & Randomization
+
+**Delay** - Entry cannot activate until N messages have passed:
+```json
+"delay": 10  // Won't trigger until 10+ messages in chat
+```
+Use for: Story beats that need setup time, preventing instant triggers in new chats
+
+**Cooldown** - Entry cannot reactivate for N messages after it ends:
+```json
+"cooldown": 50  // Can't trigger again for 50 messages
+```
+Use for: Single-instance events, preventing repetition, spacing out recurring triggers
+*Note: Cooldown starts AFTER sticky duration ends*
+
+**Probability** - % chance to activate when keywords match:
+```json
+"probability": 25  // 25% chance on keyword match
+"useProbability": true  // ALWAYS set to true
+```
+Use for: Random events (5% monster attack), unpredictable outcomes (50% negotiation success), rare discoveries (10% hidden clue)
+
+**Single-Event Technique** (one-time story moments):
+```json
+{
+  "constant": true,
+  "delay": 15,
+  "cooldown": 9999,
+  "probability": 100
+}
+```
+This creates a guaranteed trigger at message 15 that never repeats. Perfect for plot twists, character arrivals, world-changing events.
+
+**Timed Effects Rules:**
+- All measured in messages (not time/tokens)
+- Effects only apply in current chat
+- Reset if messages deleted/swiped
+- Active entries ignore new keyword triggers (duration doesn't refresh)
 
 ### Constant vs Keyword Activation
 
@@ -792,6 +836,8 @@ json{
   "probability": 100,
   "useProbability": true,
   "depth": 4,
+  "delay": 0,
+  "cooldown": 0,
   "sticky": 0,
   "vectorized": false,
   "ignoreBudget": false,
@@ -823,6 +869,8 @@ json{
   "probability": 100,
   "useProbability": true,
   "depth": 4,
+  "delay": 0,
+  "cooldown": 0,
   "sticky": 0,
   "vectorized": false,
   "ignoreBudget": false,
@@ -859,6 +907,8 @@ json{
   "probability": 100,
   "useProbability": true,
   "depth": 4,
+  "delay": 0,
+  "cooldown": 0,
   "sticky": 0,
   "vectorized": false,
   "ignoreBudget": false,
@@ -890,6 +940,8 @@ json{
   "probability": 100,
   "useProbability": true,
   "depth": 4,
+  "delay": 0,
+  "cooldown": 0,
   "sticky": 0,
   "vectorized": false,
   "ignoreBudget": false,
@@ -958,6 +1010,8 @@ json{
   "probability": 100,
   "useProbability": true,
   "depth": 4,
+  "delay": 0,
+  "cooldown": 0,
   "sticky": 0,
   "vectorized": false,
   "ignoreBudget": false,
@@ -989,6 +1043,8 @@ json{
   "probability": 100,
   "useProbability": true,
   "depth": 4,
+  "delay": 0,
+  "cooldown": 0,
   "sticky": 0,
   "vectorized": false,
   "ignoreBudget": false,
@@ -1020,6 +1076,8 @@ json{
   "probability": 100,
   "useProbability": true,
   "depth": 4,
+  "delay": 0,
+  "cooldown": 0,
   "sticky": 0,
   "vectorized": false,
   "ignoreBudget": false,
@@ -1464,6 +1522,8 @@ json{
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -1486,6 +1546,8 @@ json{
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -1522,6 +1584,8 @@ json{
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -1558,6 +1622,8 @@ json{
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -1580,6 +1646,8 @@ json{
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -1651,6 +1719,8 @@ json{
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -1673,6 +1743,8 @@ json{
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
@@ -1695,6 +1767,8 @@ json{
       "probability": 100,
       "useProbability": true,
       "depth": 4,
+      "delay": 0,
+      "cooldown": 0,
       "sticky": 0,
       "vectorized": false,
       "ignoreBudget": false,
