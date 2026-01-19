@@ -1,10 +1,10 @@
-# Universal Lorebook Creator
+**Universal Lorebook Creator**
 
 Auto-generate SillyTavern lorebooks from any lore text using AI.
 
 ---
 
-## What It Does
+**What It Does**
 
 Paste your lore → Get ready-to-import lorebook JSON. That's it.
 
@@ -12,24 +12,14 @@ Works with Claude, ChatGPT, Gemini, DeepSeek, and other AI assistants.
 
 ---
 
-## Two Versions
+**Quick Start**
 
-**📘 Standard Edition** - Detailed entries (100-200 tokens each)  
-Best for: Cloud AI models, rich descriptions
-
-**📙 Compact Edition** - Short entries (30-80 tokens each)  
-Best for: Local models, limited context, large worlds
-
----
-
-## Quick Start
-
-1. Download standard or compact edition
+1. Download the prompt file
 2. Upload to your AI (Claude, ChatGPT, etc.)
 3. Say: `"execute these instructions"` or `"make me a lorebook"`
 4. Pick a mode:
-   - **Quick Mode**: Instant generation
-   - **Guided Mode**: Step-by-step with feedback
+   - **Quick Mode:** Instant generation
+   - **Guided Mode:** Step-by-step with feedback
 5. Copy the JSON output
 6. Import to SillyTavern
 
@@ -37,7 +27,7 @@ Done!
 
 ---
 
-## Example
+**Example**
 
 ```
 You: "Create a lorebook for a cyberpunk city called Neon Heights 
@@ -50,49 +40,40 @@ Save as `.json` and import to SillyTavern.
 
 ---
 
-## Features
+**Features**
 
 - Auto-categorizes characters, locations, items, factions, rules
-- Generates smart keywords that trigger properly  
+- Generates smart keywords that trigger properly
 - Sets up recursive linking between related entries
-- Configures all technical fields correctly
+- Assigns order priorities so important entries survive token limits
+- Controls recursion to prevent infinite loops
+- Configures sticky durations for scene events
 - Outputs import-ready JSON
 
 ---
 
-## What's Included
+**What's Included**
 
-**Both versions create entries for:**
+Entries for:
 - Characters & Relationships
 - Locations & Items
 - Factions & Organizations
 - World Rules & Mechanics
 - Events, Concepts & More
 
-**Compact Edition extras:**
-- 50-70% smaller entries
-- Token budgets per entry type
-- Compression techniques guide
-- Fits 2-3x more entries in same context
+Plus:
+- Order priority system (six tiers from Flavor to Nuclear)
+- Token budgets per entry type (30-180 tokens)
+- Content crafting guidelines
+- Common mistakes checklist
+- Post-import verification steps
 
 ---
 
-## Compatible With
+**Compatible With**
 
 - Claude (recommended)
 - ChatGPT / GPT-4
 - Google Gemini
 - DeepSeek
 - Local LLMs
-
----
-
-## More Tools
-
-Check out my [other tools](https://docs.google.com/document/d/1CfWHATYyDH5HYw_7vFKtax-2fCiE-3hnmAGOtyJWTkM/edit?tab=t.0) for more SillyTavern utilities.
-
----
-
-## License
-
-MIT - Use freely!
