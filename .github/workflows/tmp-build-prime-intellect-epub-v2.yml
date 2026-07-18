@@ -1,0 +1,103 @@
+name: Temporary Prime Intellect EPUB build v2
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install beautifulsoup4 pillow requests lxml
+      - name: Build EPUB directly
+        shell: bash
+        run: |
+          mkdir -p artifact
+          cat > /tmp/build.py <<'PY'
+          import io, os, re, uuid, zipfile, html as htmllib
+          from pathlib import Path
+          import requests
+          from bs4 import BeautifulSoup
+          from PIL import Image, ImageDraw, ImageFont
+
+          OUT=Path('artifact'); EPUB=OUT/'The_Metamorphosis_of_Prime_Intellect.epub'
+          TITLE='The Metamorphosis of Prime Intellect'; AUTHOR='Roger Williams'
+          CH=[('One','Caroline At Play'),('Two','Lawrence Builds a Computer'),('Three','Caroline and Anne-Marie'),('Four','After the Night of Miracles'),('Five','Caroline Approaches'),('Six','After the Change'),('Seven','Caroline and Lawrence'),('Eight','After the Fall')]
+          base='https://localroger.com/prime-intellect/'
+          mirror='https://raw.githubusercontent.com/thesmoremail/thesmoremail.github.io/83aa869b195866c635b215a8031ea98cfd2c1e5e/best/prime_intelect/'
+          s=requests.Session(); s.headers['User-Agent']='Mozilla/5.0 personal EPUB conversion'
+          def fetch(paths):
+              errs=[]
+              for u in paths:
+                  try:
+                      r=s.get(u,timeout=60); r.raise_for_status(); return r.content
+                  except Exception as e: errs.append(str(e))
+              raise RuntimeError('; '.join(errs))
+          raw=fetch([base+'mopiall.html',mirror+'mopiall.html']).decode('utf-8','replace')
+          artb=fetch([base+'mopimoth.gif',mirror+'mopimoth.gif'])
+          pat=re.compile(r'<font\s+size="\+3"><b><pre>\*\s*Chapter\s+(One|Two|Three|Four|Five|Six|Seven|Eight):\s*(.*?)</pre></b></font>',re.I|re.S)
+          ms=list(pat.finditer(raw))
+          if len(ms)!=8: raise RuntimeError(f'found {len(ms)} chapter headings')
+          bodies=[]
+          for i,m in enumerate(ms):
+              end=ms[i+1].start() if i<7 else raw.lower().rfind('</body>')
+              soup=BeautifulSoup(raw[m.end():end],'lxml'); body=soup.body or soup
+              for t in body.find_all(['script','style','form']): t.decompose()
+              for img in body.find_all('img'): img.decompose()
+              for a in body.find_all('a'): a.unwrap()
+              for t in body.find_all(True):
+                  t.attrs={k:v for k,v in t.attrs.items() if k in ('colspan','rowspan')}
+              fragment=''.join(str(x) for x in body.contents)
+              bodies.append(fragment)
+              print('chapter',i+1,'chars',len(body.get_text(' ',strip=True)))
+
+          # Cover using the title, original artwork, and author credit from the source page.
+          W,H=1600,2560; im=Image.new('RGB',(W,H),'#f4f0e6'); d=ImageDraw.Draw(im)
+          reg='/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf'; bold='/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'
+          tf=ImageFont.truetype(bold,118); af=ImageFont.truetype(reg,62); sf=ImageFont.truetype(reg,40)
+          def ct(text,y,font,spacing=20):
+              box=d.multiline_textbbox((0,0),text,font=font,spacing=spacing,align='center'); w=box[2]-box[0]
+              d.multiline_text(((W-w)/2,y),text,font=font,spacing=spacing,align='center',fill='#17221c')
+          ct('THE METAMORPHOSIS\nOF PRIME INTELLECT',250,tf,30); d.line((260,720,W-260,720),fill='#355846',width=5)
+          art=Image.open(io.BytesIO(artb)).convert('RGBA'); scale=min(900/art.width,900/art.height); art=art.resize((int(art.width*scale),int(art.height*scale)),Image.Resampling.LANCZOS); im.paste(art,((W-art.width)//2,880),art)
+          d.line((420,1920,W-420,1920),fill='#355846',width=3); ct('A NOVEL',2025,sf); ct(AUTHOR,2130,af)
+          cover_io=io.BytesIO(); im.save(cover_io,'JPEG',quality=94,optimize=True); cover_jpg=cover_io.getvalue()
+
+          css='''body{font-family:Georgia,"Times New Roman",serif;line-height:1.55;margin:5%;max-width:42em;color:#171714;background:#fffdf8}p{margin:0;text-indent:1.45em}p+p{margin-top:.15em}em,i{font-style:italic}h1.chapter{font-family:"Courier New",monospace;font-size:1.65em;line-height:1.2;margin:18% 0 2.5em;page-break-before:always}h1.chapter .star{color:#355846}table{border-collapse:collapse;margin:1.1em 0 1.25em;max-width:100%}td{vertical-align:top;padding:.08em .22em}tt,code{font-family:"Courier New",monospace;font-weight:bold;white-space:normal}.center{text-align:center}.title h1{font-size:2.2em;line-height:1.08;margin-top:18%}.title img{display:block;max-width:70%;max-height:42vh;margin:2.2em auto}.author{font-size:1.25em}.rights{font-size:.82em;text-align:left;margin-top:5em;color:#555}.toc h1{text-align:center;margin:12% 0 2em}.toc ol{list-style:none;padding:0}.toc li{margin:.8em 0}.toc a{color:#274d39;text-decoration:none}@media(prefers-color-scheme:dark){body{color:#eee9df;background:#171714}.rights{color:#b7b0a4}.toc a,h1.chapter .star{color:#9bc3a8}}'''
+          def xhtml(title,body): return f'''<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><title>{htmllib.escape(title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body>{body}</body></html>'''.encode()
+          title_body=f'''<div class="title center"><h1>{TITLE}</h1><img src="mopimoth.gif" alt="Original moth artwork"/><p class="author">A Novel by {AUTHOR}</p><p class="rights">Copyright © 1994 Roger Williams.<br/>Personal-use conversion of the author’s freely published HTML edition. The novel text and original artwork are unchanged.</p></div>'''
+          toc_links=''.join(f'<li><a href="chapter-{i}.xhtml">Chapter {n}: {sub}</a></li>' for i,(n,sub) in enumerate(CH,1))
+          nav_links=''.join(f'<li><a href="chapter-{i}.xhtml">Chapter {n}: {sub}</a></li>' for i,(n,sub) in enumerate(CH,1))
+          chapter_files={}
+          for i,((n,sub),body) in enumerate(zip(CH,bodies),1): chapter_files[f'OEBPS/chapter-{i}.xhtml']=xhtml(f'Chapter {n}: {sub}',f'<h1 class="chapter"><span class="star">*</span> Chapter {n}:<br/>&#160;&#160;{htmllib.escape(sub)}</h1>{body}')
+          uid=str(uuid.uuid4())
+          manifest=''.join(f'<item id="ch{i}" href="chapter-{i}.xhtml" media-type="application/xhtml+xml"/>' for i in range(1,9))
+          spine=''.join(f'<itemref idref="ch{i}"/>' for i in range(1,9))
+          opf=f'''<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="bookid">urn:uuid:{uid}</dc:identifier><dc:title>{TITLE}</dc:title><dc:creator>{AUTHOR}</dc:creator><dc:language>en</dc:language><dc:rights>Copyright © 1994 Roger Williams. Personal-use format conversion.</dc:rights><meta property="dcterms:modified">2026-07-18T00:00:00Z</meta><meta name="cover" content="cover-image"/></metadata><manifest><item id="cover-image" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/><item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/><item id="title" href="title.xhtml" media-type="application/xhtml+xml"/><item id="contents" href="contents.xhtml" media-type="application/xhtml+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/><item id="css" href="style.css" media-type="text/css"/><item id="art" href="mopimoth.gif" media-type="image/gif"/>{manifest}</manifest><spine toc="ncx"><itemref idref="cover"/><itemref idref="title"/><itemref idref="contents"/>{spine}</spine></package>'''.encode()
+          nav=f'''<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>Navigation</title></head><body><nav epub:type="toc"><h1>Table of Contents</h1><ol>{nav_links}</ol></nav></body></html>'''.encode()
+          points=''.join(f'<navPoint id="nav{i}" playOrder="{i}"><navLabel><text>Chapter {n}: {sub}</text></navLabel><content src="chapter-{i}.xhtml"/></navPoint>' for i,(n,sub) in enumerate(CH,1))
+          ncx=f'''<?xml version="1.0" encoding="utf-8"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="urn:uuid:{uid}"/></head><docTitle><text>{TITLE}</text></docTitle><navMap>{points}</navMap></ncx>'''.encode()
+          files={'META-INF/container.xml':b'''<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>''','OEBPS/content.opf':opf,'OEBPS/style.css':css.encode(),'OEBPS/cover.jpg':cover_jpg,'OEBPS/mopimoth.gif':artb,'OEBPS/cover.xhtml':xhtml('Cover','<div class="center"><img src="cover.jpg" alt="Cover" style="max-width:100%;max-height:100vh"/></div>'),'OEBPS/title.xhtml':xhtml('Title Page',title_body),'OEBPS/contents.xhtml':xhtml('Table of Contents',f'<div class="toc"><h1>Table of Contents</h1><ol>{toc_links}</ol></div>'),'OEBPS/nav.xhtml':nav,'OEBPS/toc.ncx':ncx,**chapter_files}
+          with zipfile.ZipFile(EPUB,'w') as z:
+              z.writestr('mimetype','application/epub+zip',compress_type=zipfile.ZIP_STORED)
+              for name,data in files.items(): z.writestr(name,data,compress_type=zipfile.ZIP_DEFLATED)
+          with zipfile.ZipFile(EPUB) as z:
+              assert z.testzip() is None and len([n for n in z.namelist() if re.search(r'chapter-[1-8]\.xhtml$',n)])==8
+              assert z.infolist()[0].filename=='mimetype' and z.infolist()[0].compress_type==zipfile.ZIP_STORED
+          print('built',EPUB,EPUB.stat().st_size)
+          PY
+          python /tmp/build.py 2>&1 | tee artifact/build.log
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prime-intellect-epub-v2
+          path: artifact/*
+          if-no-files-found: error
