@@ -1,0 +1,33 @@
+name: Temporary Prime Intellect source fetch
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch author-published source mirror
+        shell: bash
+        run: |
+          mkdir -p source
+          python - <<'PY'
+          import requests
+          from pathlib import Path
+          base='https://raw.githubusercontent.com/thesmoremail/thesmoremail.github.io/83aa869b195866c635b215a8031ea98cfd2c1e5e/best/prime_intelect/'
+          for name in ('mopiall.html','mopimoth.gif'):
+              r=requests.get(base+name,timeout=60)
+              r.raise_for_status()
+              Path('source',name).write_bytes(r.content)
+              print(name,len(r.content),r.headers.get('content-type'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prime-intellect-source
+          path: source/*
+          if-no-files-found: error
